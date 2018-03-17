@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>LIFX JavaScript SDK Example</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<style>
+		.disabled { opacity: 0.4; pointer-events: none; }
+	</style>
+</head>
+<body>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 offset-3">
+				<hr>
+				<h1 class="text-center">Example Usage</h1>
+				<hr>
+				
+				<!-- Auth panel -->
+				<div id="auth">
+					<form>
+						<div class="card">
+							<div class="card-header">An access token is required</div>
+							<div class="card-body">
+								<p>You can generate personal access tokens from your <a href="https://cloud.lifx.com/settings" target="_blank">LIFX Cloud</a> account.</p>
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="Access Token">
+									<div class="input-group-append">
+										<button class="btn btn-primary">Connect</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+
+				<!-- Controls panel -->
+				<div id="controls" style="display: none;">
+					<form>
+						<div class="card">
+							<div class="card-header">Controls your lights</div>
+							<div class="card-body">
+								
+								<div class="form-group">
+									<label>
+										<strong>Light selector</strong>
+									</label>
+									<select name="selector" class="form-control">
+										<option value="all">All</option>
+									</select>
+								</div>
+
+								<div class="form-group">
+									<label>
+										<strong>Power</strong>
+									</label>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" name="power" value="on" id="power-radio-on" checked>
+  										<label class="form-check-label" for="power-radio-on">On</label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" name="power" value="off" id="power-radio-off">
+  										<label class="form-check-label" for="power-radio-off">Off</label>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label>
+										<strong>Color</strong>
+									</label>
+									<div class="form-control">
+										<input type="color" name="color">
+									</div>
+								</div>
+
+							</div>
+							<div class="card-footer text-center">
+								<button class="btn btn-primary">Submit</button>
+							</div>
+						</div>
+					</form>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+
+	<!-- jQuery library (served from Google) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<!-- Lifx.js Javascript file -->
+	<script src="../src/Lifx.js"></script>
+	<!-- App -->
+	<script>
+		(function($) {
+			'use strict';
+
+			var $auth_panel		= $('#auth'),
+				$controls_panel	= $('#controls');
+
+			var connection		= false;
+
+			/**
+			 * Basic auth form
+			 */
+			$auth_panel.find('form').on('submit', function() {
+
+				var access_token = $(this).find('input').val();
+
+				if (!$.trim(access_token)) {
+					alert('An access token is required');
+					return false;
+				}
+
+				// Temporarily store connection
+				connection = new Lifx( access_token );
+
+				// Hide auth panel and show controls
+				$auth_panel.hide();
+				$controls_panel.trigger('show');
+
+				return false;
+			});
+
+			/**
+			 * Controls panel
+			 */
+			$controls_panel.on('show', function() {
+				$controls_panel.show();
+				connection.list_lights().then(function(response) {
+					if (response.length) {
+						for (var i = 0; i < response.length; i++) {
+							var light = response[i];
+
+							var $option = $('<option>', {
+								value: 'id:'+light.id,
+								text: light.label
+							});
+
+							$controls_panel.find('[name="selector"]').append( $option );
+						}
+					}
+				});
+			});
+
+			/**
+			 * Send request
+			 */
+			$controls_panel.find('form').on('submit', function() {
+				var selector		= $controls_panel.find('[name="selector"]').val(),
+					power_value		= $controls_panel.find('[name="power"]:checked').val(),
+					color_value		= $controls_panel.find('[name="color"]').val();
+
+				$controls_panel.addClass('disabled');
+
+				connection.set_state(selector, {
+					power: power_value,
+					color: color_value
+				}).then(function() {
+					$controls_panel.removeClass('disabled');
+				});
+
+				return false;
+			});
+
+		})(jQuery);
+	</script>
+
+</body>
+</html>

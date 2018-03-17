@@ -31,7 +31,7 @@ Firstly we need to include the files. The jQuery library needs to be included be
 ### Initiate SDK
 Initiating the SDK requires an [access token](https://api.developer.lifx.com/docs/authentication).  You can generate personal access tokens from your [LIFX Cloud](https://cloud.lifx.com/settings) account.
 ```javascript
-const connection = Lifx('XXXXXXXXXXX');
+const connection = new Lifx('XXXXXXXXXXX');
 ```
 ## Basic usage
 HTTP calls that require a `:selector` will be taken from the functions first parameter. If none given `all` will be sent as default. Read more about selectors [here](https://api.developer.lifx.com/docs/selectors).
@@ -58,7 +58,7 @@ connection.set_state('id:XXXXXXXXXXXXX', {
 ```
 ### Javascript
 ```javascript
-const connection = Lifx('ACCESS-TOKEN');
+const connection = new Lifx('ACCESS-TOKEN');
 const button = document.getElementById('toggle-all');
 const input = document.getElementById('change-color');
 

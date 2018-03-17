@@ -55,7 +55,7 @@ function Lifx(authorisation_token) {
 		// Return promise
 		return new Promise((resolve, reject) => {
 			$.ajax({
-				url: self.base_url+prefix+'/'+endpoint,
+				url: self.base_url+($.trim(prefix) ? prefix : '/')+endpoint,
 				type: method,
 				data: params,
 				headers: {

@@ -111,7 +111,7 @@ function Lifx(authorisation_token) {
 		return selector;
 	};
 
-	/* Endpoint helpers
+	/* Endpoint handlers
 	-------------------------------------------------------- */
 
 	/**
@@ -274,7 +274,7 @@ function Lifx(authorisation_token) {
 		let data = $.extend({
 			duration:	null,	// double	The time in seconds to spend performing the scene transition.
 			ignore:		[],		// array	Any of "power", "infrared", "duration", "intensity", "hue", "saturation", "brightness" or "kelvin", specifying that these properties should not be changed on devices when applying the scene.
-			overrides:	{}		// object	 state object as per Set State specifying properties to apply to all devices in the scene, overriding those configured in the scene.
+			overrides:	{}		// object	state object as per Set State specifying properties to apply to all devices in the scene, overriding those configured in the scene.
 		}, params || {});
 
 		return self.api.put('scenes/'+scene_uuid+'/activate', data, '');
@@ -292,4 +292,41 @@ function Lifx(authorisation_token) {
 		}, '');
 	};
 
+	/* Additional handlers
+	-------------------------------------------------------- */
+
+	/**
+	 * Set a color based on hue and saturation
+	 * @param	{integer}	hue			Accepts a number between 0 - 360
+	 * @param	{integer}	saturation	Accepts a double between 0.0 - 1.0
+	 * @return	{Promise}
+	 * @see		https://api.developer.lifx.com/docs/validate-color
+	 */
+	self.set_color = (selector, hue, saturation) => {
+		return self.set_state(selector, {
+			color: 'hue:'+hue+' saturation:'+saturation+' kelvin:3500'
+		});
+	};
+
+	/**
+	 * Set a white color based on kelvin
+	 * @param	{integer}	kelvin		Accepts a number between 1500 - 9000
+	 * @return	{Promise}
+	 * @see		https://api.developer.lifx.com/docs/validate-color
+	 */
+	self.set_white = (selector, kelvin) => {
+		return self.set_state(selector, {
+			color: 'hue:0.0 saturation:0.0 kelvin:'+kelvin
+		});
+	};
+
+
+
+
+
 }
+
+
+
+
+

@@ -18,6 +18,27 @@ This is a simple JavaScript SDK for making HTTP calls to the [LIFX API](https://
 |[Activate Scene](https://api.developer.lifx.com/docs/activate-scene)|`PUT`|`activate_scene()`|Yes|
 |[Validate Color](https://api.developer.lifx.com/docs/validate-color)|`GET`|`validate_color()`|Yes|
 
+## Using the example
+**1.** Clone this repo and move into the the directory.
+
+```sh
+git clone git@github.com:thelevicole/lifx-sdk-javascript.git && cd lifx-sdk-javascript
+```
+
+**2.** Install any node dependencies required.
+
+```sh
+npm install
+```
+
+**3.** Run the default Gulp task.
+
+```sh
+gulp default
+```
+
+**4.** Visit [http://localhost:3000](http://localhost:3000)
+
 
 ## Setup
 ### Link required files

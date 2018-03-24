@@ -5,8 +5,7 @@
  */
 
 function Lifx(access_token) {
-	const $		= window.$ || window.jQuery || false;
-	const self	= this;
+	const self = this;
 
 	self.base_url	= 'https://api.lifx.com/v1/';
 	self.token		= access_token;

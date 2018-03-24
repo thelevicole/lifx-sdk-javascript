@@ -4,19 +4,97 @@
  * Licensed under MIT (http://opensource.org/licenses/MIT)
  */
 
-function Lifx(authorisation_token) {
+function Lifx(access_token) {
 	const $		= window.$ || window.jQuery || false;
 	const self	= this;
 
 	self.base_url	= 'https://api.lifx.com/v1/';
-	self.token		= authorisation_token;
+	self.token		= access_token;
 
 	/**
 	 * Check for dependencies
 	 */
-	if (!$) { throw 'jQuery is required for Lifx()'; }
 	if (!self.token) { throw 'An API Authorization token is required. See: https://api.developer.lifx.com/docs/authentication'; }
 
+	/* Builder functions
+	-------------------------------------------------------- */
+
+	/**
+	 * Serialize object for XML request
+	 * @param	{object}	object
+	 * @param	{string}	prefix
+	 * @return	{string}
+	 */
+	const serialize = function(object, prefix) {
+		let result = [];
+		
+		for (const param in object) {
+			if (object.hasOwnProperty(param)) {
+				const key	= prefix ? prefix+'['+param+']' : param;
+				const value	= object[param];
+
+				result.push( (value !== null && typeof value === 'object') ? serialize(value, key) : encodeURIComponent(key)+'='+encodeURIComponent(value));
+			}
+		}
+
+		return result.join('&');
+	};
+
+	/**
+	 * Merge multiple objects into one
+	 * @param	{object}	result
+	 * @return	{object}
+	 */
+	const extend = function(result) {
+		result = result || {};
+
+		for (var i = 1; i < arguments.length; i++) {
+			if (!arguments[i]) {
+				continue;
+			}
+
+			for (var key in arguments[i]) {
+				if (arguments[i].hasOwnProperty(key)) {
+					result[key] = arguments[i][key];
+				}
+			}
+		}
+
+		return result;
+	};
+
+	/**
+	 * Perform AJAX request
+	 * @param	{string}	method	GET | POST | PUT
+	 * @param	{string}	action
+	 * @param	{object}	data
+	 * @return	{Promise}
+	 */
+	const ajax = function(method, action, data) {
+		return new Promise((resolve, reject) => {
+			let request = new XMLHttpRequest();
+				request.open(method.toUpperCase(), action, true);
+				request.setRequestHeader('Authorization', 'Bearer '+self.token);
+
+			if (method !== 'GET') {
+				request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			}
+
+			request.onload = () => {
+				if (request.status >= 200 && request.status < 400) {
+					resolve( JSON.parse(request.responseText) );
+				} else {
+					reject( JSON.parse(request.responseText) );
+				}
+			};
+
+			request.onerror = () => {
+				reject( JSON.parse(request.responseText) );
+			};
+
+			request.send( serialize(data || {}) );
+		});
+	};
 
 	/* API helpers
 	-------------------------------------------------------- */
@@ -51,22 +129,8 @@ function Lifx(authorisation_token) {
 			}
 		}
 
-
 		// Return promise
-		return new Promise((resolve, reject) => {
-			$.ajax({
-				url: self.base_url+($.trim(prefix) ? prefix : '/')+endpoint,
-				type: method,
-				data: params,
-				headers: {
-					Authorization: 'Bearer '+self.token
-				}
-			}).then(function(response) {
-				resolve(response);
-			}, function(errors) {
-				reject(errors);
-			});
-		});
+		return ajax(method, self.base_url+(prefix.trim() ? prefix : '/')+endpoint, params);
 	};
 
 	/**
@@ -77,7 +141,7 @@ function Lifx(authorisation_token) {
 	 * @return	{Promise}
 	 */
 	self.api.post = function(endpoint, data, prefix) {
-		return self.api.call('post', endpoint, data);
+		return self.api.call('post', endpoint, data, prefix);
 	};
 
 	/**
@@ -88,7 +152,7 @@ function Lifx(authorisation_token) {
 	 * @return	{Promise}
 	 */
 	self.api.get = function(endpoint, data, prefix) {
-		return self.api.call('get', endpoint, data);
+		return self.api.call('get', endpoint, data, prefix);
 	};
 
 	/**
@@ -99,7 +163,7 @@ function Lifx(authorisation_token) {
 	 * @return	{Promise}
 	 */
 	self.api.put = function(endpoint, data, prefix) {
-		return self.api.call('put', endpoint, data);
+		return self.api.call('put', endpoint, data, prefix);
 	};
 
 	/* Ad-hoc helpers
@@ -136,7 +200,7 @@ function Lifx(authorisation_token) {
 	self.set_state = (selector, params) => {
 		selector = validate_selector(selector);
 
-		let data = $.extend({
+		let data = extend({
 			power:		'on',	// string	The power state you want to set on the selector. on or off
 			color:		'',		// string	The color to set the light to. @see https://api.developer.lifx.com/v1/docs/colors
 			brightness:	null,	// double	The brightness level from 0.0 to 1.0. Overrides any brightness set in color (if any).
@@ -182,7 +246,7 @@ function Lifx(authorisation_token) {
 	self.toggle_power = (selector, params) => {
 		selector = validate_selector(selector);
 
-		let data = $.extend({
+		let data = extend({
 			duration: null	// double	The time is seconds to spend performing the power toggle.
 		}, params || {});
 
@@ -199,7 +263,7 @@ function Lifx(authorisation_token) {
 	self.breath_effect = (selector, params) => {
 		selector = validate_selector(selector);
 
-		let data = $.extend({
+		let data = extend({
 			color:		'',		// string	The color to use for the breathe effect. @see https://api.developer.lifx.com/v1/docs/colors
 			from_color:	'',		// string	The color to start the effect from. If this parameter is omitted then the color the bulb is currently set to is used instead.
 			period:		null,	// double	The time in seconds for one cyles of the effect.
@@ -222,7 +286,7 @@ function Lifx(authorisation_token) {
 	self.pulse_effect = (selector, params) => {
 		selector = validate_selector(selector);
 
-		let data = $.extend({
+		let data = extend({
 			color:		'',		// string	The color to use for the pulse effect. @see https://api.developer.lifx.com/v1/docs/colors
 			from_color:	'',		// string	The color to start the effect from. If this parameter is omitted then the color the bulb is currently set to is used instead.
 			period:		null,	// double	The time in seconds for one cyles of the effect.
@@ -244,7 +308,7 @@ function Lifx(authorisation_token) {
 	self.cycle = (selector, params) => {
 		selector = validate_selector(selector);
 
-		let data = $.extend({
+		let data = extend({
 			states:		[],			// array	Array of state hashes as per Set State. Must have 2 to 5 entries.
 			defaults:	{},			// object	Default values to use when not specified in each states[] object.
 			direction:	'forward'	// string	Direction in which to cycle through the list. Can be forward or backward
@@ -271,7 +335,7 @@ function Lifx(authorisation_token) {
 	 */
 	self.activate_scene = (scene_uuid, params) => {
 
-		let data = $.extend({
+		let data = extend({
 			duration:	null,	// double	The time in seconds to spend performing the scene transition.
 			ignore:		[],		// array	Any of "power", "infrared", "duration", "intensity", "hue", "saturation", "brightness" or "kelvin", specifying that these properties should not be changed on devices when applying the scene.
 			overrides:	{}		// object	state object as per Set State specifying properties to apply to all devices in the scene, overriding those configured in the scene.

@@ -2,7 +2,7 @@
 
 # lifx-sdk-javascript
 
-This is a simple JavaScript SDK for making HTTP calls to the [LIFX API](https://api.developer.lifx.com/). Currently jQuery dependant.
+This is a simple JavaScript SDK for making HTTP calls to the [LIFX API](https://api.developer.lifx.com/).
 ## Available calls checklist
 |Name|Type|Function|Available|
 |--|--|--|--|
@@ -42,10 +42,8 @@ gulp default
 
 ## Setup
 ### Link required files
-Firstly we need to include the files. The jQuery library needs to be included before the SDK is called. (no need to download - link directly from Google).
+Firstly we need to include the files.
 ```html
-<!-- jQuery library (served from Google) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <!-- Lifx.js Javascript file -->
 <script src="/js/Lifx.js"></script>
 ```

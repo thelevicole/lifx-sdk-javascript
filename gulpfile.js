@@ -12,7 +12,7 @@ gulp.task('build', function() {
 		.pipe( gulp.dest('./dist') );
 });
 
-gulp.task('default', function() {
+gulp.task('default', ['build'], function() {
 	browser.init({
 		server: {
 			baseDir: './example'
@@ -24,7 +24,7 @@ gulp.task('default', function() {
 	});
 });
 
-gulp.task('watch', ['build', 'default'], function() {
+gulp.task('watch', ['default'], function() {
 	gulp.watch([
 		'./src/Lifx.js',
 		'./example/index.html'
